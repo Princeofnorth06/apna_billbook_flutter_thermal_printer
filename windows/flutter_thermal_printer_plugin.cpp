@@ -15,7 +15,10 @@
 
 namespace flutter_thermal_printer {
 
-// static
+// Registration only: create channel and plugin, set handler. No BLE, WinRT, COM,
+// or any async work so plugin load is safe when combined with universal_ble.
+// Handler uses weak_ptr so no callback runs after plugin destruction (avoids
+// MSVCP140 access violation from use-after-free).
 void FlutterThermalPrinterPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
   auto channel =
@@ -23,23 +26,37 @@ void FlutterThermalPrinterPlugin::RegisterWithRegistrar(
           registrar->messenger(), "flutter_thermal_printer",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto plugin = std::make_unique<FlutterThermalPrinterPlugin>();
+  auto plugin = std::make_shared<FlutterThermalPrinterPlugin>();
+  std::weak_ptr<FlutterThermalPrinterPlugin> weak = plugin;
 
   channel->SetMethodCallHandler(
-      [plugin_pointer = plugin.get()](const auto &call, auto result) {
-        plugin_pointer->HandleMethodCall(call, std::move(result));
+      [weak](const auto &call, auto result) {
+        auto p = weak.lock();
+        if (!p) {
+          result->Error("DISPOSED", "Plugin has been disposed.");
+          return;
+        }
+        p->HandleMethodCall(call, std::move(result));
       });
 
-  registrar->AddPlugin(std::move(plugin));
+  registrar->AddPlugin(std::unique_ptr<flutter::Plugin>(
+      plugin.get(),
+      [plugin](flutter::Plugin*) mutable { plugin.reset(); }));
 }
 
 FlutterThermalPrinterPlugin::FlutterThermalPrinterPlugin() {}
 
-FlutterThermalPrinterPlugin::~FlutterThermalPrinterPlugin() {}
+FlutterThermalPrinterPlugin::~FlutterThermalPrinterPlugin() {
+  disposed_.store(true);
+}
 
 void FlutterThermalPrinterPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  if (!is_alive()) {
+    result->Error("DISPOSED", "Plugin has been disposed.");
+    return;
+  }
   if (method_call.method_name().compare("getPlatformVersion") == 0) {
     std::ostringstream version_stream;
     version_stream << "Windows ";
