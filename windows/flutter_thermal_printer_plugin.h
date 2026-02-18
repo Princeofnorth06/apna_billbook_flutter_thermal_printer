@@ -9,32 +9,31 @@
 
 namespace flutter_thermal_printer {
 
-/// Windows plugin for USB printer (Win32 API only). No BLE, no WinRT, no COM.
-/// BLE is handled by Dart via universal_ble; this plugin must stay safe at
-/// registration (no async init, no callbacks) to avoid startup crashes when
-/// combined with other native plugins (e.g. universal_ble).
+/// Windows plugin: USB printer via Win32 only. No BLE, WinRT, or COM.
+/// Constructor and RegisterWithRegistrar() do no work; safe at DLL load.
+/// All async/callbacks must check is_alive() before touching plugin state.
 class FlutterThermalPrinterPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
   FlutterThermalPrinterPlugin();
-
   virtual ~FlutterThermalPrinterPlugin();
 
-  // Disallow copy and assign.
   FlutterThermalPrinterPlugin(const FlutterThermalPrinterPlugin&) = delete;
   FlutterThermalPrinterPlugin& operator=(const FlutterThermalPrinterPlugin&) = delete;
 
-  /// Returns false after destructor has run; use in any callback before touching state.
-  bool is_alive() const { return !disposed_; }
+  /// True until destructor runs. All callbacks must check before using this.
+  bool is_alive() const { return alive_.load(std::memory_order_acquire); }
 
-  // Called when a method is called on this plugin's channel from Dart.
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
  private:
-  std::atomic<bool> disposed_{false};
+  /// No-op for this plugin (no native BLE/WinRT). Call from method handlers if needed.
+  void EnsureInitialized();
+
+  std::atomic<bool> alive_{true};
 };
 
 }  // namespace flutter_thermal_printer

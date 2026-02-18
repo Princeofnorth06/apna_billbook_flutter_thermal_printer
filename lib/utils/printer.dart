@@ -1,9 +1,15 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:universal_ble/universal_ble.dart';
+/// Connection type for a printer (BLE removed; USB and NETWORK only).
+enum ConnectionType {
+  BLE,
+  USB,
+  NETWORK,
+}
 
-/// Optimized printer model with better data validation and serialization
-class Printer extends BleDevice {
+/// Printer model with data validation and serialization.
+/// BLE is not supported (universal_ble removed); use USB or NETWORK.
+class Printer {
   Printer({
     this.address,
     this.name,
@@ -11,7 +17,7 @@ class Printer extends BleDevice {
     this.isConnected,
     this.vendorId,
     this.productId,
-  }) : super(deviceId: address ?? '', name: name ?? '');
+  });
 
   /// Create Printer from JSON with validation
   factory Printer.fromJson(Map<String, dynamic> json) {
@@ -30,8 +36,6 @@ class Printer extends BleDevice {
     }
   }
 
-  @override
-  // ignore: overridden_fields
   final String? name;
   final String? address;
   final ConnectionType? connectionType;
@@ -39,21 +43,21 @@ class Printer extends BleDevice {
   final String? vendorId;
   final String? productId;
 
+  /// Alias for [address] (API compatibility).
+  String get deviceId => address ?? '';
+
   /// Convert to JSON with proper formatting
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
-
     data['address'] = address;
     data['name'] = name;
     data['connectionType'] = connectionType?.name;
     data['isConnected'] = isConnected;
     data['vendorId'] = vendorId;
     data['productId'] = productId;
-
     return data;
   }
 
-  /// Get human-readable connection type string
   String get connectionTypeString {
     switch (connectionType) {
       case ConnectionType.BLE:
@@ -67,7 +71,6 @@ class Printer extends BleDevice {
     }
   }
 
-  /// Create a copy with updated fields
   Printer copyWith({
     String? address,
     String? name,
@@ -85,7 +88,6 @@ class Printer extends BleDevice {
         productId: productId ?? this.productId,
       );
 
-  /// Generate unique identifier for the printer
   String get uniqueId {
     final buffer = StringBuffer();
     if (vendorId != null) {
@@ -98,7 +100,6 @@ class Printer extends BleDevice {
     return buffer.toString();
   }
 
-  /// Check if printer has valid connection data
   bool get hasValidConnectionData {
     switch (connectionType) {
       case ConnectionType.USB:
@@ -117,12 +118,17 @@ class Printer extends BleDevice {
       'Printer(name: $name, connectionType: ${connectionType?.name}, '
       'address: $address, isConnected: $isConnected)';
 
-  /// Convert string to ConnectionType enum
+  // --- Stubs (BLE not supported; universal_ble removed) ---
+  Future<void> connect() async {}
+  Future<void> disconnect() async {}
+  Stream<bool> get connectionStream => const Stream<bool>.empty();
+  Future<List<dynamic>> discoverServices() async => [];
+  Future<int> requestMtu(int mtu) async => 0;
+
   static ConnectionType? _getConnectionTypeFromString(String? type) {
     if (type == null) {
       return null;
     }
-
     switch (type.toUpperCase()) {
       case 'BLE':
         return ConnectionType.BLE;
@@ -134,11 +140,4 @@ class Printer extends BleDevice {
         return null;
     }
   }
-}
-
-/// Enhanced connection type enum
-enum ConnectionType {
-  BLE,
-  USB,
-  NETWORK,
 }

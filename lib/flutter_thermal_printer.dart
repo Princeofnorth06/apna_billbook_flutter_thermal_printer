@@ -14,7 +14,7 @@ import 'utils/printer.dart';
 export 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 export 'package:flutter_thermal_printer/network/network_printer.dart';
 export 'package:flutter_thermal_printer/utils/ble_config.dart';
-export 'package:universal_ble/universal_ble.dart';
+export 'package:flutter_thermal_printer/utils/printer.dart';
 
 /// Main class for thermal printer operations across all platforms
 ///
@@ -113,7 +113,6 @@ class FlutterThermalPrinter {
     Duration refreshDuration = const Duration(seconds: 2),
     List<ConnectionType> connectionTypes = const [
       ConnectionType.USB,
-      ConnectionType.BLE,
     ],
     bool androidUsesFineLocation = false,
   }) async {
@@ -133,14 +132,6 @@ class FlutterThermalPrinter {
   Future<void> turnOnBluetooth() async {
     await PrinterManager.instance.turnOnBluetooth();
   }
-
-  ///
-  /// [context] The build context.
-  /// [widget] The widget to capture.
-  /// [delay] Delay before capturing the screenshot.
-  /// [customWidth] Optional custom width for the image.
-  /// [paperSize] The paper size of the printer.
-  /// [generator] Optional ESC/POS generator.
 
   /// Check if Bluetooth is turned on
   Future<bool> isBleTurnedOn() async => PrinterManager.instance.isBleTurnedOn();

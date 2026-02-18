@@ -6,7 +6,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
-import 'package:flutter_thermal_printer/utils/printer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +33,6 @@ class _MyAppState extends State<MyApp> {
     _devicesStreamSubscription?.cancel();
     await _flutterThermalPrinterPlugin.getPrinters(connectionTypes: [
       ConnectionType.USB,
-      ConnectionType.BLE,
     ]);
     _devicesStreamSubscription = _flutterThermalPrinterPlugin.devicesStream
         .listen((List<Printer> event) {

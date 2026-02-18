@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer_platform_interface.dart';
-import 'package:flutter_thermal_printer/utils/printer.dart';
 
 import '../mocks/mock_platform.dart';
 

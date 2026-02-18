@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer_method_channel.dart';
 import 'package:flutter_thermal_printer/flutter_thermal_printer_platform_interface.dart';
-import 'package:flutter_thermal_printer/utils/printer.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockFlutterThermalPrinterPlatform
